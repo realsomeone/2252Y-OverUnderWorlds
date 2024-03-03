@@ -30,10 +30,16 @@ rigtmid = Motor(Ports.PORT5,GearSetting.RATIO_6_1,False)
 rigtbak = Motor(Ports.PORT6,GearSetting.RATIO_6_1,False)
 lefty = MotorGroup(leftbak,leftmid,lefttop) # Motors in 1 side are controlled by MotorGroups
 right = MotorGroup(rigtbak,rigtmid,rigttop)
-dtmots = MotorGroup(lefty,right)
+dtmots = MotorGroup(lefty,right)            # all drivetrain motors in a MotorGroup
 inert = Inertial(Ports.PORT11)
 rL = Rotation(Ports.PORT12,False)
 rR = Rotation(Ports.PORT13,True)
+intake = Motor(Ports.PORT7,GearSetting.RATIO_18_1,True)
+fwing = DigitalOut(brain.three_wire_port.a)
+lbwing = DigitalOut(brain.three_wire_port.b)
+rbwing = DigitalOut(brain.three_wire_port.c)
+elevmot = Motor(Ports.PORT8,GearSetting.RATIO_18_1,False)
+ratchetLock = DigitalOut(brain.three_wire_port.d)
 # endregion
 # region hybrid functions
 def toggle(button,lastState,change):
@@ -56,7 +62,7 @@ def toggle(button,lastState,change):
         if button == lastState and not change: return True,False # check if conditional has not changed from initial value
         elif button != lastState: return True,True  # condition changed, waiting for 2nd change
         else: return False,False # condition is OG value, continue.
-def hold(button,lastState):
+def hold(button,lastState=0):
     """Halt thread until current state changes.
 
     Args:
@@ -69,6 +75,54 @@ def hold(button,lastState):
     else:
         if button == lastState: return True # wait for state change
         else: return False
+def intakeIn():
+    intake.spin(FORWARD)            # spins intake
+    if intaketrigF.pressing():  # check if a button is pressed
+        while hold(intaketrigF): wait(5)  # while button is held, wait
+        intake.stop()               # stops intake when done
+def intakeOut():
+    intake.spin(REVERSE)            # spins intake
+    if intaketrigR.pressing():  # check if a button is pressed
+        while hold(intaketrigR): wait(5) # while button is held, wait
+        intake.stop()               # stops intake when done
+def FWings():
+    if not fwing.value():           # check if wings are expanded
+        fwing.set(True)             # expand wings
+        if player.buttonR1.pressing():              # check if driver summoned this function
+            while hold(player.buttonR1): wait(5)    # if yes, wait for release. Else, end function
+            fwing.set(False)
+    else:                   # if wings are expanded (auton summoned the function),
+        fwing.set(False)    # hide wings
+def LBWing():
+    if not lbwing.value():          # check if wings are expanded
+        lbwing.set(True)            # expand wings
+        if player.buttonDown.pressing():            # check if driver summoned this function
+            while hold(player.buttonDown): wait(5)  # if yes, wait for release. Else, end function
+            lbwing.set(False)
+    else:                   # if wings are expanded (auton summoned the function),
+        lbwing.set(False)   # hide wings
+def RBWing():
+    if not rbwing.value():          # check if wings are expanded
+        rbwing.set(True)            # expand wings
+        if player.buttonB.pressing():               # check if driver summoned this function
+            while hold(player.buttonB): wait(5)     # if yes, wait for release. Else, end function
+            rbwing.set(False)
+    else:                   # if wings are expanded (auton summoned the function),
+        rbwing.set(False)   # hide wings
+def elev(dir=""):
+    if elevmot.velocity() < 5:      # check if elevation is not spinning
+        if dir == "up": elevmot.spin(FORWARD)               # lift elevation up
+        if dir == "down": elevmot.spin(REVERSE)             # move elevation down
+        if elevUp.pressing() or elevDown.pressing():
+            while hold(elevUp) or hold(elevDown): wait(5)   # wait until the button is let go
+            elevmot.stop()                                  # stop the elevation 
+    else:       # if elevation is moving (auton summoned the function)
+        if not (elevUp.pressing() or elevDown.pressing()):  # double check if auton summoned the function 
+            elevmot.stop()      # stop the elevation
+def ratchlock():
+    wait(1,SECONDS)             # wait a second, driver should hold the button to trigger the function
+    if locktrig.pressing():     # check if driver held the button for a second
+        ratchetLock.set(True)   # engage ratchet lock
 # endregion
 # region driver functions
 def baseCont():
@@ -78,6 +132,35 @@ def baseCont():
         lefty.set_velocity(player.axis3.position()+player.axis1.position(),PERCENT) 
         right.set_velocity(player.axis3.position()-player.axis1.position(),PERCENT)
         wait(5)
+def intakeCont():
+    global intaketrigF, intaketrigR     # globalize buttons, makes change easier
+
+    intaketrigF = player.buttonL2       # save buttons to variable
+    intaketrigR = player.buttonL1
+
+    intake.set_velocity(100,PERCENT)    # set motor to max vel
+    intaketrigF.pressed(intakeIn)       # assign L2 to pickup triball
+    intaketrigR.pressed(intakeOut)      # assign L1 to spit out triball
+def WingsCont():
+    global fwingtrig, lwingtrig, rwingtrig
+
+    fwingtrig = player.buttonR1         # save buttons to variables
+    lwingtrig = player.buttonDown
+    rwingtrig = player.buttonB
+
+    player.buttonR1.pressed(FWings)     # assign each button to its hybrid function
+    player.buttonB.pressed(RBWing)
+    player.buttonDown.pressed(LBWing)
+def ElevationCont():
+    global elevUp, elevDown, locktrig
+
+    elevUp = player.buttonUp            # save buttons to global variables
+    elevDown = player.buttonY
+    locktrig = player.buttonLeft
+
+    elevUp.pressed(elev,tuple("up"))    # assign hybrid function with arguments to buttons
+    elevDown.pressed(elev,tuple("down"))
+    locktrig.pressed(ratchlock)
 # endregion
 # region autonomous functions
 def inertCheck(Tdis):
@@ -146,5 +229,13 @@ def drivF(): # Threads driver period, compliant with competitive requirements
     while comp.is_enabled() and comp.is_driver_control(): wait(10) # waits until driver period ends
     active.stop()
 comp = Competition(drivF,autoF) # initiates our competition format
-driver(baseCont)
+driver(baseCont)        # these lines make sure the driver functions actually work
+driver(intakeCont)
+driver(WingsCont)
+driver(ElevationCont)
 # endregion
+
+fwing.set(False)        # make sure pistons don't expand in start 
+rbwing.set(False)
+lbwing.set(False)
+ratchetLock.set(False)
