@@ -32,18 +32,18 @@ lefty = MotorGroup(leftbak,leftmid,lefttop) # Motors in 1 side are controlled by
 right = MotorGroup(rigtbak,rigtmid,rigttop)
 dtmots = MotorGroup(lefty,right)            # all drivetrain motors in a MotorGroup
 inert = Inertial(Ports.PORT11)
-rL = Rotation(Ports.PORT12,False)
-rR = Rotation(Ports.PORT13,True)
 intake = Motor(Ports.PORT7,GearSetting.RATIO_18_1,True)
 fwing = DigitalOut(brain.three_wire_port.a)
 lbwing = DigitalOut(brain.three_wire_port.b)
 rbwing = DigitalOut(brain.three_wire_port.c)
 elevmot = Motor(Ports.PORT8,GearSetting.RATIO_18_1,False)
 ratchetLock = DigitalOut(brain.three_wire_port.d)
-autonOpt = Optical(Ports.PORT14)
+autonOpt = Optical(Ports.PORT12)
+catapult = Motor(Ports.PORT9,GearSetting.RATIO_36_1,False)
+catsens = Rotation(Ports.PORT13,False)
 # endregion
 # region hybrid functions
-def toggle(button,lastState,change):
+def toggle(button,lastState=True,change=0):
     """Halt thread until current state toggles between current and not current.
     If bool, provide `lastState` and `change`.
     Used in that case as `while toggle(current,last,change): wait(5)`
@@ -56,13 +56,13 @@ def toggle(button,lastState,change):
         change (Boolean): manages our autonomous toggle, can be 
     """
     if isinstance(button,player.Button):
-        lastState = button.pressing() # save current state to variable
-        while button.pressing() == lastState: wait(5) # waits for button change
-        while button.pressing() != lastState: wait(5) # waits for button change, again
+        lastState = button.pressing()                   # save current state to variable
+        while button.pressing() == lastState: wait(5)   # waits for button change
+        while button.pressing() != lastState: wait(5)   # waits for button change, again
     else: 
-        if button == lastState and not change: return True,False # check if conditional has not changed from initial value
-        elif button != lastState: return True,True  # condition changed, waiting for 2nd change
-        else: return False,False # condition is OG value, continue.
+        if button == lastState and not change: return True,False        # check if conditional has not changed from initial value
+        elif button != lastState: return True,True      # condition changed, waiting for 2nd change
+        else: return False,False        # condition is OG value, continue.
 def hold(button,lastState=0):
     """Halt thread until current state changes.
 
@@ -124,6 +124,38 @@ def ratchlock():
     wait(1,SECONDS)             # wait a second, driver should hold the button to trigger the function
     if locktrig.pressing():     # check if driver held the button for a second
         ratchetLock.set(True)   # engage ratchet lock
+def cataHide():
+    if catapult.velocity(PERCENT) < 5 and catsens.angle() > maxrot - 15: 
+    # check if catapult is not moving, and in range of holding
+        catapult.set_stopping(COAST)    # release HOLD mode
+    else:
+        catapult.set_stopping(HOLD)     # make catapult HOLD
+        catapult.spin(FORWARD)          # move catapult down
+        while catsens.angle() < maxrot - 10: wait(5)    # wait until in good range
+        catapult.stop()                 # stop catapult
+    if hideTogg.pressing():
+        hold(hideTogg)
+def cataCalibration():
+    global maxrot, minrot       # save vars as global variables
+    maxrot, minrot = catsens.angle(), catsens.angle()       # set values to current position
+    catsens.reset_position()    # reset Rotation
+    catapult.spin(FORWARD)      #spin catapult
+    while True:
+        check = 0       # value making sure we have maxs and mins
+        if catsens.angle() < minrot:    # check if our angle is less than minimum 
+            minrot = catsens.angle()    # make current angle new minimum
+        else: check += 1                # add to our check
+        if catsens.angle() > maxrot:    # check if angle is more than maximum
+            maxrot = catsens.angle()    # make current angle the new maximum
+        else: check += 1                # add to out check
+        if check == 2: break            # if both "if"s didn't change variables, break
+        wait(5)
+    catapult.stop()     # stop our catapult
+def cata():
+    catapult.set_stopping(COAST)    # makes sure catapult dosent get affected by hiding
+    catapult.spin(FORWARD)          # spins catapult
+    toggle(cataTogg)                # waits for the toggle
+    catapult.stop()                 # stops catapult
 # endregion
 # region driver functions
 def baseCont():
@@ -162,6 +194,15 @@ def ElevationCont():
     elevUp.pressed(elev,tuple("up"))    # assign hybrid function with arguments to buttons
     elevDown.pressed(elev,tuple("down"))
     locktrig.pressed(ratchlock)
+def cataCont():
+    cataCalibration()       # calibrate catapult before giving control
+    global cataTogg, hideTogg   # globalize used buttons to access them in functions
+
+    cataTogg = player.buttonR2  # assign actual buttons to these functions
+    hideTogg = player.buttonX
+
+    cataTogg.pressed(cata)      # assing each button its hybrid function
+    hideTogg.pressed(cataHide)
 # endregion
 # region autonomous functions
 def inertCheck(Tdis):
@@ -258,6 +299,7 @@ driver(baseCont)        # these lines make sure the driver functions actually wo
 driver(intakeCont)
 driver(WingsCont)
 driver(ElevationCont)
+driver(cataCont)
 # endregion
 
 fwing.set(False)        # make sure pistons don't expand in start 
