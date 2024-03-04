@@ -40,6 +40,7 @@ lbwing = DigitalOut(brain.three_wire_port.b)
 rbwing = DigitalOut(brain.three_wire_port.c)
 elevmot = Motor(Ports.PORT8,GearSetting.RATIO_18_1,False)
 ratchetLock = DigitalOut(brain.three_wire_port.d)
+autonOpt = Optical(Ports.PORT14)
 # endregion
 # region hybrid functions
 def toggle(button,lastState,change):
@@ -167,17 +168,18 @@ def inertCheck(Tdis):
     vel = 0             # current robot velocity (inches/seconds)
     dis = 0             # distance ran by robot
     slowdown = False
+    stabilization = Thread(inertStabil)         # stabilize robot's straights
     while True:
         # get current acceleration in inches/seconds^2
         accel = inert.acceleration(XAXIS) * 386.1 # type: ignore
         vel += accel * 0.05         # add change to velocity
         dis += vel * 0.05           # calculate distance from our current velocity
         if Tdis - dis < 5 and not slowdown:             # if remaning distance is less than 5 inches
-            lefty.set_velocity(lefty.velocity()/3)      # reduce wheel velocity to 1/3 its velocity
-            right.set_velocity(right.velocity()/3)
+            veldec(dtmots)
             slowdown = True         # makes sure this dosen't run again
         wait(5)
         if Tdis <= dis:             # check if distance is completed
+            stabilization.stop()    # end stabilization
             break
 def inertTCheck(Tturn):
     inert.reset_rotation()          # reset inertial rotation value
@@ -185,38 +187,60 @@ def inertTCheck(Tturn):
     while True: 
         amnt = inert.rotation()     # save current rotation amount
         if abs(amnt) > abs(Tturn) - 25 and not slowdown:    # check if theres 25 degress left in turning
-            dtmots.set_velocity(dtmots.velocity()/3)    # slowdown base by 1/3
+            veldec(dtmots)          # slowdown base by 1/3
             slowdown = True         # makes sure this dosen't run again
         if abs(amnt) >= abs(Tturn): break               # exit when rotation reaches the threshold given
-def odomCheck(dis):
-    rL.set_position(0) # reset positions of rotations
-    rR.set_position(0)
-    slowdown = False
+def inertStabil():
+    inert.reset_rotation()              # reset rotation to have a constant reset point
     while True:
-        pL = ((rL.position() * math.pi * wheeldiam) / dis) * 100    # convert distances into %s, clearer end condition
-        pR = ((rR.position() * math.pi * wheeldiam) / dis) * 100
-        fac = (0.25 / dis) * 100    # factor for correction threshold
-        slFac = (5 / dis) * 100     # factor for ending slowdown
-        if pL - pR > fac:           # check if deviation is enough
-            vel = veldec(lefty)     # slow down deviated side
-            while pL - pR > fac - ((0.1 / dis) * 100): wait(5)  # wait until deviation is sufficiently small
-            lefty.set_velocity(vel,PERCENT)     # restore OG velocity
-        elif pR - pL > fac:         # same as other if, but specified for the other side
-            vel = veldec(right)     # slow down deviated side
-            while pL - pR > fac - ((0.1 / dis) * 100): wait(5)  # wait until deviation is sufficiently small
-            right.set_velocity(vel,PERCENT)     # restore OG velocity
-        if (pL >= slFac or pR >= slFac) and not slowdown:       # if either side has 5 inches left in its movement
-            veldec(dtmots)          # slows down whole base
-            slowdown = True         # makes sure this dosen't run again
-        if (pL >= 100 or pR >= 100) and slowdown: break # checks for 100% completion
+        if inert.rotation() < -5:       # if rotation is too much to the left, 
+            og = veldec(right)          # reduce velocity on the right
+            while not int(inert.rotation()) == 0: wait(5)   # wait until centered
+            right.set_velocity(og,PERCENT)  # restore velocity
+        elif inert.rotation() > 5:      # if rotation is too much to the right,
+            og = veldec(lefty)          # reduce velocity on the left
+            while not int(inert.rotation()) == 0: wait(5)   # wait until centered
+            lefty.set_velocity(og,PERCENT)  # restore velocity
+        wait(5)
 def veldec(motor):
     retval = motor.velocity(PERCENT)    # save OG motor velocity
     if motor.count() > 3:               # check if we need to slow down whole base
         motor.set_velocity(motor.velocity()/3)          # change velocity to 1/3 its original value
     else: motor.set_velocity(motor.velocity() * 0.80)   # reduce velocity by 20%
     return retval           # return OG velocity, used if necessary
-def auton(): # code for autonomous, currently none
-    pass
+def autonDetect():
+    if not autonOpt.installed(): return ""  # if sensor is disconnected, return empty
+    autonOpt.set_light(LedStateType.ON)     # turn in light, not helpful, but we know when its working
+    autonOpt.set_light_power(100)           # set intensity to max
+    if autonOpt.is_near_object():           # check if theres an object covering the sensor
+        ret = "offen"                       # return to run offensive side auton
+    else:
+        ret = "defen"                       # return to run defesive side auton
+    autonOpt.set_light(LedStateType.OFF)    # turn off light
+    return ret                              # return our variable
+def move(dis):
+    dir = dis / abs(dis)                    # get direction, -1 for backwards or 1 for forwards
+    dtmots.set_velocity(80 * dir,PERCENT)   # set current velocity to a stable, precise velocity. multiplied by dir
+    dtmots.spin(FORWARD)                    # start to move motors
+    inertCheck(dis)                         # wait for exit from this function
+    dtmots.stop()                           # stop motors
+    wait(10)
+def turn(theta):
+    dir = theta / abs(theta)                # get direction of turn
+    dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
+    lefty.spin(FORWARD)                     # start motors
+    right.spin(REVERSE)
+    inertTCheck(theta)                      # wait until current rotation meets our needs
+    dtmots.stop()                           # stop movement
+def auton():
+    check = autonDetect()       # check which autonomous should be ran
+    dtmots.set_stopping(HOLD)   # set stopping to hold, should make everything more precise
+    if check == "offen":    # offensive side auton
+        pass
+    elif check == "defen":  # defensive side auton
+        pass
+    else:                   # no auton; only used in emergencies
+        pass
 # endregion
 # region competitions functions
 driver = Event()
@@ -225,6 +249,7 @@ def autoF(): # Threads the autonomous code, compliant with competitive requireme
     while comp.is_enabled() and comp.is_autonomous(): wait(10) # waits until auton period ends
     active.stop()
 def drivF(): # Threads driver period, compliant with competitive requirements
+    dtmots.set_stopping(COAST)
     active = Thread(driver.broadcast)
     while comp.is_enabled() and comp.is_driver_control(): wait(10) # waits until driver period ends
     active.stop()
