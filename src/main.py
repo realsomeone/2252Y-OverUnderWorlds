@@ -55,7 +55,7 @@ def toggle(button,lastState=True,change=0):
         lastState (Boolean): should be constant, eg: if False, must maintain False throught whole excecution
         change (Boolean): manages our autonomous toggle, can be 
     """
-    if isinstance(button,player.Button):
+    if compD == 1:
         lastState = button.pressing()                   # save current state to variable
         while button.pressing() == lastState: wait(5)   # waits for button change
         while button.pressing() != lastState: wait(5)   # waits for button change, again
@@ -70,7 +70,7 @@ def hold(button,lastState=0):
         button (Button or Boolean): conditional to check
         lastState (Boolean): last state of same conditional
     """
-    if isinstance(button,player.Button):
+    if compD == 1:
         lastState = button.pressing()
         while button.pressing() == lastState: wait(5) # wait for button change
     else:
@@ -286,11 +286,15 @@ def auton():
 # region competitions functions
 driver = Event()
 def autoF(): # Threads the autonomous code, compliant with competitive requirements
+    global compD
+    compD = 1
     active = Thread(auton)
     while comp.is_enabled() and comp.is_autonomous(): wait(10) # waits until auton period ends
     active.stop()
 def drivF(): # Threads driver period, compliant with competitive requirements
+    global compD
     dtmots.set_stopping(COAST)
+    compD = 1
     active = Thread(driver.broadcast)
     while comp.is_enabled() and comp.is_driver_control(): wait(10) # waits until driver period ends
     active.stop()
