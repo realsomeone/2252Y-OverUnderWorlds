@@ -39,7 +39,7 @@ rbwing = DigitalOut(brain.three_wire_port.c)
 elevmot = Motor(Ports.PORT8,GearSetting.RATIO_18_1,False)
 ratchetLock = DigitalOut(brain.three_wire_port.d)
 autonOpt = Optical(Ports.PORT12)
-catapult = Motor(Ports.PORT9,GearSetting.RATIO_36_1,False)
+catapult = Motor(Ports.PORT9,GearSetting.RATIO_36_1,True)
 catsens = Rotation(Ports.PORT13,False)
 # endregion
 # region hybrid functions
@@ -114,9 +114,11 @@ def elev(dir=""):
     if elevmot.velocity() < 5:      # check if elevation is not spinning
         if dir == "up": elevmot.spin(FORWARD)               # lift elevation up
         if dir == "down": elevmot.spin(REVERSE)             # move elevation down
-        if elevUp.pressing() or elevDown.pressing():
-            while hold(elevUp) or hold(elevDown): wait(5)   # wait until the button is let go
-            elevmot.stop()                                  # stop the elevation 
+        if elevUp.pressing():
+            while hold(elevUp): wait(5)   # wait until the button is let go
+        elif elevDown.pressing():
+            while hold(elevDown): wait(5)
+        elevmot.stop()
     else:       # if elevation is moving (auton summoned the function)
         if not (elevUp.pressing() or elevDown.pressing()):  # double check if auton summoned the function 
             elevmot.stop()      # stop the elevation
@@ -152,10 +154,11 @@ def cataCalibration():
         wait(5)
     catapult.stop()     # stop our catapult
 def cata():
-    catapult.set_stopping(COAST)    # makes sure catapult dosent get affected by hiding
-    catapult.spin(FORWARD)          # spins catapult
-    toggle(cataTogg)                # waits for the toggle
-    catapult.stop()                 # stops catapult
+    if catapult.velocity(PERCENT) < 5:
+        catapult.set_stopping(COAST)    # makes sure catapult dosent get affected by hiding
+        catapult.spin(FORWARD)          # spins catapult
+        toggle(cataTogg)                # waits for the toggle
+        catapult.stop()                 # stops catapult
 # endregion
 # region driver functions
 def baseCont():
@@ -191,8 +194,8 @@ def ElevationCont():
     elevDown = player.buttonY
     locktrig = player.buttonLeft
 
-    elevUp.pressed(elev,tuple("up"))    # assign hybrid function with arguments to buttons
-    elevDown.pressed(elev,tuple("down"))
+    elevUp.pressed(elev,("up",))    # assign hybrid function with arguments to buttons
+    elevDown.pressed(elev,("down",))
     locktrig.pressed(ratchlock)
 def cataCont():
     cataCalibration()       # calibrate catapult before giving control
@@ -310,3 +313,5 @@ fwing.set(False)        # make sure pistons don't expand in start
 rbwing.set(False)
 lbwing.set(False)
 ratchetLock.set(False)
+
+catapult.set_velocity(70,PERCENT)
