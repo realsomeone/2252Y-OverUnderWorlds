@@ -15,9 +15,11 @@ brain = Brain()
 player = Controller()
 
 trackwidth = 12.25 # Faker's measurements
-wheelbase = 10
-wheeldiam = 2.75
+wheelbase = 10 # inches
+wheeldiam = 2.75 # inches
 gearatio = 4/3
+wheelcirc = wheeldiam * math.pi # inches/turns
+robotcirc = wheelbase * math.pi # inches
 if brain.sdcard.is_inserted(): # load up pizazz from the SD Card
     brain.screen.draw_image_from_file('PR.png',0,0)
 # region brain ports
@@ -211,6 +213,10 @@ def cataCont():
     hideTogg.pressed(cataHide)
 # endregion
 # region autonomous functions
+def disToMot(dis):
+    return (dis / wheelcirc) / gearatio # if wrong change second operator to '*'
+def degToDis(deg):
+    return (deg / 360) * robotcirc # makes a turn from degrees to inches
 def inertCheck(Tdis):
     vel = 0             # current robot velocity (inches/seconds)
     dis = 0             # distance ran by robot
@@ -257,7 +263,7 @@ def veldec(motor):
     return retval           # return OG velocity, used if necessary
 def autonDetect():
     if not autonOpt.installed(): return ""  # if sensor is disconnected, return empty
-    autonOpt.set_light(LedStateType.ON)     # turn in light, not helpful, but we know when its working
+    autonOpt.set_light(LedStateType.ON)     # turn on light, not helpful, but we know when its working
     autonOpt.set_light_power(100)           # set intensity to max
     if autonOpt.is_near_object():           # check if theres an object covering the sensor
         ret = "offen"                       # return to run offensive side auton
@@ -268,17 +274,15 @@ def autonDetect():
 def move(dis):
     dir = dis / abs(dis)                    # get direction, -1 for backwards or 1 for forwards
     dtmots.set_velocity(80 * dir,PERCENT)   # set current velocity to a stable, precise velocity. multiplied by dir
-    dtmots.spin(FORWARD)                    # start to move motors
-    inertCheck(dis)                         # wait for exit from this function
-    dtmots.stop()                           # stop motors
+    dtmots.spin_for(FORWARD,disToMot(dis),TURNS,wait=True) # spins motors using its encoders as reference
     wait(10)
 def turn(theta):
     dir = theta / abs(theta)                # get direction of turn
     dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
-    lefty.spin(FORWARD)                     # start motors
-    right.spin(REVERSE)
-    inertTCheck(theta)                      # wait until current rotation meets our needs
-    dtmots.stop()                           # stop movement
+    amnt = degToDis(theta)                  # convert degrees to distance
+    turn = disToMot(amnt)                   # convert distrance to motor turns
+    lefty.spin_for(FORWARD,turn,TURNS,wait=False)   # start motors
+    right.spin_for(REVERSE,turn,TURNS,wait=True)
 def auton():
     move(5)
     intake.spin_for(FORWARD,5,TURNS)
