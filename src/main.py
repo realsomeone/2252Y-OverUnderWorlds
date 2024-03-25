@@ -214,7 +214,7 @@ def cataCont():
 # endregion
 # region autonomous functions
 def disToMot(dis):
-    return (dis / wheelcirc) / gearatio # if wrong change second operator to '*'
+    return (dis / wheelcirc) * gearatio # if wrong change second operator to '*'
 def degToDis(deg):
     return (deg / 360) * robotcirc # makes a turn from degrees to inches
 def inertCheck(Tdis):
@@ -272,9 +272,11 @@ def autonDetect():
     autonOpt.set_light(LedStateType.OFF)    # turn off light
     return ret                              # return our variable
 def move(dis):
-    dir = dis / abs(dis)                    # get direction, -1 for backwards or 1 for forwards
-    dtmots.set_velocity(80 * dir,PERCENT)   # set current velocity to a stable, precise velocity. multiplied by dir
-    dtmots.spin_for(FORWARD,disToMot(dis),TURNS,wait=True) # spins motors using its encoders as reference
+    dir = dis / abs(dis)            
+    lefty.set_velocity(80 * dir,PERCENT)         # get direction, -1 for backwards or 1 for forwards
+    right.set_velocity(80 * dir,PERCENT)   # set current velocity to a stable, precise velocity. multiplied by dir
+    right.spin_for(FORWARD,disToMot(dis),TURNS,wait=False)
+    lefty.spin_for(FORWARD,disToMot(dis),TURNS,wait=True) # spins motors using its encoders as reference
     wait(10)
 def turn(theta):
     dir = theta / abs(theta)                # get direction of turn
@@ -284,7 +286,9 @@ def turn(theta):
     lefty.spin_for(FORWARD,turn,TURNS,wait=False)   # start motors
     right.spin_for(REVERSE,turn,TURNS,wait=True)
 def auton():
-    move(5)
+    brain.screen.print ("hi\n")
+    move(5) 
+    brain.screen.print ("hello\n")
     intake.spin_for(FORWARD,5,TURNS)
     check = autonDetect()       # check which autonomous should be ran
     dtmots.set_stopping(HOLD)   # set stopping to hold, should make everything more precise
