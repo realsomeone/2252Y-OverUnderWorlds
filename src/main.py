@@ -39,7 +39,7 @@ rbwing = DigitalOut(brain.three_wire_port.c)
 elevmot = Motor(Ports.PORT8,GearSetting.RATIO_18_1,False)
 ratchetLock = DigitalOut(brain.three_wire_port.d)
 autonOpt = Optical(Ports.PORT12)
-catapult = Motor(Ports.PORT9,GearSetting.RATIO_36_1,True)
+catapult = Motor(Ports.PORT9,GearSetting.RATIO_36_1,False)
 catsens = Rotation(Ports.PORT13,False)
 # endregion
 # region hybrid functions
@@ -122,10 +122,14 @@ def elev(dir=""):
     else:       # if elevation is moving (auton summoned the function)
         if not (elevUp.pressing() or elevDown.pressing()):  # double check if auton summoned the function 
             elevmot.stop()      # stop the elevation
+elevmot.set_velocity(100,PERCENT)
 def ratchlock():
     wait(1,SECONDS)             # wait a second, driver should hold the button to trigger the function
     if locktrig.pressing():     # check if driver held the button for a second
-        ratchetLock.set(True)   # engage ratchet lock
+        ratchetLock.set(True)
+        wait(1,SECONDS)
+        ratchetLock.set(False)
+           # engage ratchet lock
 def cataHide():
     if catapult.velocity(PERCENT) < 5 and catsens.angle() > maxrot - 15: 
     # check if catapult is not moving, and in range of holding
@@ -174,7 +178,6 @@ def intakeCont():
     intaketrigF = player.buttonL2       # save buttons to variable
     intaketrigR = player.buttonL1
 
-    intake.set_velocity(100,PERCENT)    # set motor to max vel
     intaketrigF.pressed(intakeIn)       # assign L2 to pickup triball
     intaketrigR.pressed(intakeOut)      # assign L1 to spit out triball
 def WingsCont():
@@ -277,9 +280,13 @@ def turn(theta):
     inertTCheck(theta)                      # wait until current rotation meets our needs
     dtmots.stop()                           # stop movement
 def auton():
+    move(5)
+    intake.spin_for(FORWARD,5,TURNS)
     check = autonDetect()       # check which autonomous should be ran
     dtmots.set_stopping(HOLD)   # set stopping to hold, should make everything more precise
-    if check == "offen":    # offensive side auton
+    if check == "offen": 
+        
+          # offensive side auton
         pass
     elif check == "defen":  # defensive side auton
         pass
@@ -314,4 +321,5 @@ rbwing.set(False)
 lbwing.set(False)
 ratchetLock.set(False)
 
-catapult.set_velocity(70,PERCENT)
+catapult.set_velocity(64,PERCENT)
+intake.set_velocity(100,PERCENT)    # set motor to max vel
