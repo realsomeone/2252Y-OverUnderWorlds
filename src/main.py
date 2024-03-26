@@ -281,10 +281,17 @@ def move(dis):
 def turn(theta):
     dir = theta / abs(theta)                # get direction of turn
     dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
+    amnt = degToDis(theta) * 2              # convert degrees to distance. x2 for radius
+    turn = disToMot(amnt)                   # convert distance to motor turns
+    if dir > 0:
+        right.spin_for(FORWARD,turn,TURNS,wait=True)   # start motors
+    else:
+        lefty.spin_for(FORWARD,turn,TURNS,wait=True)   # start motors
+def pturn(theta):
+    dir = theta / abs(theta)
+    dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
     amnt = degToDis(theta)                  # convert degrees to distance
     turn = disToMot(amnt)                   # convert distrance to motor turns
-    lefty.spin_for(FORWARD,turn,TURNS,wait=False)   # start motors
-    right.spin_for(REVERSE,turn,TURNS,wait=True)
 def auton():
     brain.screen.print ("hi\n")
     move(5) 
