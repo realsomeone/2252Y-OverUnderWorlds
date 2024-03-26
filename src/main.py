@@ -218,7 +218,7 @@ def disToMot(dis):
 def degToDis(deg):
     return (deg / 360) * robotcirc # makes a turn from degrees to inches
 def arcToDis(deg,piv):
-    return (deg / 360) * piv
+    return (deg / 360) * (piv * math.pi * 2)
 def inertCheck(Tdis):
     vel = 0             # current robot velocity (inches/seconds)
     dis = 0             # distance ran by robot
@@ -322,11 +322,11 @@ def aturn(theta,piv):
     amntOut = arcToDis(theta,piv+wheelbase) # convert degrees to distance. 
     turnOut = disToMot(amntOut)             # convert distance to motor turns
     if dir > 0:
-        lefty.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
-        right.spin_for(FORWARD,turnOut,TURNS,wait=True)   # start motors
-    else:
         right.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
         lefty.spin_for(FORWARD,turnOut,TURNS,wait=True)   # start motors
+    else:
+        lefty.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
+        right.spin_for(FORWARD,turnOut,TURNS,wait=True)   # start motors
 def raturn(theta,piv):
     dir = theta / abs(theta)                # get direction of turn
     dtmots.set_velocity(60,PERCENT)   # set velocity to a stable vel. dir determines direction
@@ -335,11 +335,11 @@ def raturn(theta,piv):
     amntOut = arcToDis(theta,piv+wheelbase) # convert degrees to distance. 
     turnOut = disToMot(amntOut)             # convert distance to motor turns
     if dir > 0:
-        lefty.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
-        right.spin_for(REVERSE,turnOut,TURNS,wait=True)   # start motors
-    else:
         right.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
         lefty.spin_for(REVERSE,turnOut,TURNS,wait=True)   # start motors
+    else:
+        lefty.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
+        right.spin_for(REVERSE,turnOut,TURNS,wait=True)   # start motors
 def auton():
     brain.screen.print ("hi\n")
     move(5) 
