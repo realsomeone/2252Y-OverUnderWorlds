@@ -217,8 +217,9 @@ def disToMot(dis):
     return (dis / wheelcirc) * gearatio # if wrong change second operator to '*'
 def degToDis(deg):
     return (deg / 360) * robotcirc # makes a turn from degrees to inches
-def arcToDis(deg,piv):
-    return (deg / 360) * (piv * math.pi * 2)
+def calcArc(degs=0,dis=float(0)):
+    val = ((degs * math.pi) / 180) * dis
+    return val/wheeldiam*gearatio
 def inertCheck(Tdis):
     vel = 0             # current robot velocity (inches/seconds)
     dis = 0             # distance ran by robot
@@ -314,32 +315,38 @@ def rpturn(theta):
         right.spin_for(REVERSE,turn,TURNS,wait=True)   # start motors
     else:
         lefty.spin_for(REVERSE,turn,TURNS,wait=True)   # start motors
-def aturn(theta,piv):
-    dir = theta / abs(theta)                # get direction of turn
-    dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
-    amntIn = arcToDis(theta,piv)            # convert degrees to distance. 
-    turnIn = disToMot(amntIn)               # convert distance to motor turns
-    amntOut = arcToDis(theta,piv+wheelbase) # convert degrees to distance. 
-    turnOut = disToMot(amntOut)             # convert distance to motor turns
-    if dir > 0:
-        right.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
-        lefty.spin_for(FORWARD,turnOut,TURNS,wait=True)   # start motors
+def aturn(theta=90,pivdis=float(5)):
+    vel = 55
+    dtmots.set_velocity(vel,PERCENT)
+    if theta < 0:
+        turnR = abs(calcArc(theta,pivdis+trackwidth))
+        turnL = abs(calcArc(theta,pivdis))
+        veL = vel * (turnL/turnR)
+        veR = vel
     else:
-        lefty.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
-        right.spin_for(FORWARD,turnOut,TURNS,wait=True)   # start motors
-def raturn(theta,piv):
-    dir = theta / abs(theta)                # get direction of turn
-    dtmots.set_velocity(60*dir,PERCENT)   # set velocity to a stable vel. dir determines direction
-    amntIn = arcToDis(theta,piv)            # convert degrees to distance. 
-    turnIn = disToMot(amntIn)               # convert distance to motor turns
-    amntOut = arcToDis(theta,piv+wheelbase) # convert degrees to distance. 
-    turnOut = disToMot(amntOut)             # convert distance to motor turns
-    if dir > 0:
-        right.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
-        lefty.spin_for(REVERSE,turnOut,TURNS,wait=True)   # start motors
+        turnL = abs(calcArc(theta,pivdis+trackwidth))
+        turnR = abs(calcArc(theta,pivdis))
+        veL = vel
+        veR = vel * (turnR/turnL)
+    right.spin_for(FORWARD,turnR,TURNS,veR,PERCENT,False)
+    lefty.spin_for(FORWARD,turnL,TURNS,veL,PERCENT,True)
+    wait(5)
+def aturn(theta=90,pivdis=float(5)):
+    vel = 55
+    dtmots.set_velocity(vel,PERCENT)
+    if theta < 0:
+        turnR = abs(calcArc(theta,pivdis+trackwidth))
+        turnL = abs(calcArc(theta,pivdis))
+        veL = vel * (turnL/turnR)
+        veR = vel
     else:
-        lefty.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
-        right.spin_for(REVERSE,turnOut,TURNS,wait=True)   # start motors
+        turnL = abs(calcArc(theta,pivdis+trackwidth))
+        turnR = abs(calcArc(theta,pivdis))
+        veL = vel
+        veR = vel * (turnR/turnL)
+    right.spin_for(REVERSE,turnR,TURNS,veR,PERCENT,False)
+    lefty.spin_for(REVERSE,turnL,TURNS,veL,PERCENT,True)
+    wait(5)
 def auton():
     brain.screen.print ("hi\n")
     move(5) 
