@@ -316,29 +316,29 @@ def rpturn(theta):
         lefty.spin_for(REVERSE,turn,TURNS,wait=True)   # start motors
 def aturn(theta,piv):
     dir = theta / abs(theta)                # get direction of turn
-    dtmots.set_velocity(60,PERCENT)   # set velocity to a stable vel. dir determines direction
+    dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
     amntIn = arcToDis(theta,piv)            # convert degrees to distance. 
     turnIn = disToMot(amntIn)               # convert distance to motor turns
     amntOut = arcToDis(theta,piv+wheelbase) # convert degrees to distance. 
     turnOut = disToMot(amntOut)             # convert distance to motor turns
     if dir > 0:
-        right.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
+        right.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
         lefty.spin_for(FORWARD,turnOut,TURNS,wait=True)   # start motors
     else:
-        lefty.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
+        lefty.spin_for(FORWARD,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
         right.spin_for(FORWARD,turnOut,TURNS,wait=True)   # start motors
 def raturn(theta,piv):
     dir = theta / abs(theta)                # get direction of turn
-    dtmots.set_velocity(60,PERCENT)   # set velocity to a stable vel. dir determines direction
+    dtmots.set_velocity(60*dir,PERCENT)   # set velocity to a stable vel. dir determines direction
     amntIn = arcToDis(theta,piv)            # convert degrees to distance. 
     turnIn = disToMot(amntIn)               # convert distance to motor turns
     amntOut = arcToDis(theta,piv+wheelbase) # convert degrees to distance. 
     turnOut = disToMot(amntOut)             # convert distance to motor turns
     if dir > 0:
-        right.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
+        right.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
         lefty.spin_for(REVERSE,turnOut,TURNS,wait=True)   # start motors
     else:
-        lefty.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut),wait=False)
+        lefty.spin_for(REVERSE,turnIn,TURNS,60*(turnIn/turnOut)*dir,wait=False)
         right.spin_for(REVERSE,turnOut,TURNS,wait=True)   # start motors
 def auton():
     brain.screen.print ("hi\n")
