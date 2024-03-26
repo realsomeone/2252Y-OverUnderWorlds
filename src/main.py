@@ -218,8 +218,8 @@ def disToMot(dis):
 def degToDis(deg):
     return (deg / 360) * robotcirc # makes a turn from degrees to inches
 def calcArc(degs=0,dis=float(0)):
-    val = ((degs * math.pi) / 180) * dis
-    return val/wheeldiam*gearatio
+    val = 2*math.pi*dis*(degs/360)
+    return disToMot(val)
 def inertCheck(Tdis):
     vel = 0             # current robot velocity (inches/seconds)
     dis = 0             # distance ran by robot
@@ -331,7 +331,7 @@ def aturn(theta=90,pivdis=float(5)):
     right.spin_for(FORWARD,turnR,TURNS,veR,PERCENT,False)
     lefty.spin_for(FORWARD,turnL,TURNS,veL,PERCENT,True)
     wait(5)
-def aturn(theta=90,pivdis=float(5)):
+def raturn(theta=90,pivdis=float(5)):
     vel = 55
     dtmots.set_velocity(vel,PERCENT)
     if theta < 0:
