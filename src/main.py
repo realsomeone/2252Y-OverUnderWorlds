@@ -43,6 +43,7 @@ ratchetLock = DigitalOut(brain.three_wire_port.d)
 autonOpt = Optical(Ports.PORT12)
 catapult = Motor(Ports.PORT9,GearSetting.RATIO_36_1,False)
 catsens = Rotation(Ports.PORT13,False)
+elevPis = DigitalOut(brain.three_wire_port.e)
 # endregion
 # region hybrid functions
 def toggle(button,lastState=True,change=0):
@@ -124,7 +125,6 @@ def elev(dir=""):
     else:       # if elevation is moving (auton summoned the function)
         if not (elevUp.pressing() or elevDown.pressing()):  # double check if auton summoned the function 
             elevmot.stop()      # stop the elevation
-elevmot.set_velocity(100,PERCENT)
 def ratchlock():
     wait(1,SECONDS)             # wait a second, driver should hold the button to trigger the function
     if locktrig.pressing():     # check if driver held the button for a second
@@ -163,6 +163,11 @@ def cata():
         catapult.spin(FORWARD)          # spins catapult
         toggle(cataTogg)                # waits for the toggle
         catapult.stop()                 # stops catapult
+def elevDeploy():
+    if elevPis.value():
+        elevPis.set(False)
+    else:
+        elevPis.set(True)
 # endregion
 # region driver functions
 def baseCont():
@@ -191,15 +196,17 @@ def WingsCont():
     player.buttonB.pressed(RBWing)
     player.buttonDown.pressed(LBWing)
 def ElevationCont():
-    global elevUp, elevDown, locktrig
+    global elevUp, elevDown, locktrig, deployTrig
 
     elevUp = player.buttonUp            # save buttons to global variables
     elevDown = player.buttonY
     locktrig = player.buttonLeft
+    deployTrig = player.buttonRight
 
-    elevUp.pressed(elev,("up",))    # assign hybrid function with arguments to buttons
-    elevDown.pressed(elev,("down",))
+    elevUp.pressed(elev,("up"))    # assign hybrid function with arguments to buttons
+    elevDown.pressed(elev,("down"))
     locktrig.pressed(ratchlock)
+    deployTrig.pressed(elevDeploy)
 def cataCont():
     cataCalibration()       # calibrate catapult before giving control
     global cataTogg, hideTogg   # globalize used buttons to access them in functions
@@ -404,3 +411,4 @@ ratchetLock.set(False)
 
 catapult.set_velocity(64,PERCENT)
 intake.set_velocity(100,PERCENT)    # set motor to max vel
+elevmot.set_velocity(100,PERCENT)
