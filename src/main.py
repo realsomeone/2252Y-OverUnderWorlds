@@ -129,8 +129,6 @@ def ratchlock():
     wait(1,SECONDS)             # wait a second, driver should hold the button to trigger the function
     if locktrig.pressing():     # check if driver held the button for a second
         ratchetLock.set(True)
-        wait(1,SECONDS)
-        ratchetLock.set(False)
            # engage ratchet lock
 def cataHide():
     if catapult.velocity(PERCENT) < 5 and catsens.angle() > maxrot - 15: 
@@ -290,6 +288,15 @@ def tmove(time):
     wait(abs(time),SECONDS)
     right.stop()
     lefty.stop()
+def rtmove(time):
+    dir = time / abs(time)
+    lefty.set_velocity(80 * dir,PERCENT)         # get direction, -1 for backwards or 1 for forwards
+    right.set_velocity(80 * dir,PERCENT)   # set current velocity to a stable, precise velocity. multiplied by dir
+    lefty.spin(REVERSE)
+    right.spin(REVERSE)
+    wait(abs(time),SECONDS)
+    right.stop()
+    lefty.stop()
 def turn(theta):
     dir = theta / abs(theta)                # get direction of turn
     dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
@@ -348,10 +355,14 @@ def raturn(theta=90,pivdis=float(5)):
     lefty.spin_for(REVERSE,turnL,TURNS,veL,PERCENT,True)
     wait(5)
 def auton():
-    brain.screen.print ("hi\n")
-    move(5) 
-    brain.screen.print ("hello\n")
     intake.spin_for(FORWARD,5,TURNS)
+    move(5)
+    rpturn(90,15)
+    move(-2)
+    move(3)
+    turn(90)
+    rtmove(0.3)
+
     check = autonDetect()       # check which autonomous should be ran
     dtmots.set_stopping(HOLD)   # set stopping to hold, should make everything more precise
     if check == "offen": 
