@@ -24,7 +24,7 @@ if brain.sdcard.is_inserted(): # load up pizazz from the SD Card
     brain.screen.draw_image_from_file('PR.png',0,0)
 # region brain ports
 change = False
-lefttop = Motor(Ports.PORT1,GearSetting.RATIO_6_1,True)
+lefttop = Motor(Ports.PORT13,GearSetting.RATIO_6_1,True)
 leftmid = Motor(Ports.PORT2,GearSetting.RATIO_6_1,True)
 leftbak = Motor(Ports.PORT3,GearSetting.RATIO_6_1,True)
 rigttop = Motor(Ports.PORT4,GearSetting.RATIO_6_1,False)
@@ -203,8 +203,9 @@ def ElevationCont():
     locktrig = player.buttonLeft
     deployTrig = player.buttonRight
 
-    elevUp.pressed(elev,("up"))    # assign hybrid function with arguments to buttons
-    elevDown.pressed(elev,("down"))
+    # wait(75,SECONDS)
+    elevUp.pressed(elev,("up",))    # assign hybrid function with arguments to buttons
+    elevDown.pressed(elev,("down",))
     locktrig.pressed(ratchlock)
     deployTrig.pressed(elevDeploy)
 def cataCont():
@@ -271,18 +272,15 @@ def veldec(motor):
     return retval           # return OG velocity, used if necessary
 def autonDetect():
     if not autonOpt.installed(): return ""  # if sensor is disconnected, return empty
-    autonOpt.set_light(LedStateType.ON)     # turn on light, not helpful, but we know when its working
-    autonOpt.set_light_power(100)           # set intensity to max
     if autonOpt.is_near_object():           # check if theres an object covering the sensor
-        ret = "offen"                       # return to run offensive side auton
+        ret = "defen"                       # return to run offensive side auton
     else:
-        ret = "defen"                       # return to run defesive side auton
-    autonOpt.set_light(LedStateType.OFF)    # turn off light
+        ret = "offen"                       # return to run defesive side auton
     return ret                              # return our variable
 def move(dis):
     dir = dis / abs(dis)            
-    lefty.set_velocity(80 * dir,PERCENT)         # get direction, -1 for backwards or 1 for forwards
-    right.set_velocity(80 * dir,PERCENT)   # set current velocity to a stable, precise velocity. multiplied by dir
+    lefty.set_velocity(70 * dir,PERCENT)         # get direction, -1 for backwards or 1 for forwards
+    right.set_velocity(70 * dir,PERCENT)   # set current velocity to a stable, precise velocity. multiplied by dir
     right.spin_for(FORWARD,disToMot(dis),TURNS,wait=False)
     lefty.spin_for(FORWARD,disToMot(dis),TURNS,wait=True) # spins motors using its encoders as reference
     wait(10)
@@ -362,21 +360,25 @@ def raturn(theta=90,pivdis=float(5)):
     lefty.spin_for(REVERSE,turnL,TURNS,veL,PERCENT,True)
     wait(5)
 def auton():
-    intake.spin_for(FORWARD,5,TURNS)
-    move(5)
-    rpturn(90,15)
-    move(-2)
-    move(3)
-    turn(90)
-    rtmove(0.3)
-
     check = autonDetect()       # check which autonomous should be ran
-    dtmots.set_stopping(HOLD)   # set stopping to hold, should make everything more precise
-    if check == "offen": 
-        
-          # offensive side auton
-        pass
+    dtmots.set_stopping(COAST)   # set stopping to hold, should make everything more precise
+    if check == "offen": # offensive side auton
+        # intake.spin_for(FORWARD,5,TURNS,wait=False)
+        move(5)
+        turn(-7)
+        intake.spin_for(FORWARD,6,TURNS,wait=False)
+        move(46)
+        move(-45.75)
+        turn(45)
+        intake.spin_for(REVERSE,2,TURNS)
+        turn(-80)
+        intake.spin_for(FORWARD,7,TURNS,wait=False)
+        move(26)
+        wait(100, MSEC)
+        move(-30)
+        rpturn(-30)
     elif check == "defen":  # defensive side auton
+        lbwing.set(True)
         pass
     else:                   # no auton; only used in emergencies
         pass
