@@ -27,21 +27,21 @@ change = False
 lefttop = Motor(Ports.PORT13,GearSetting.RATIO_6_1,True)
 leftmid = Motor(Ports.PORT2,GearSetting.RATIO_6_1,True)
 leftbak = Motor(Ports.PORT3,GearSetting.RATIO_6_1,True)
-rigttop = Motor(Ports.PORT4,GearSetting.RATIO_6_1,False)
-rigtmid = Motor(Ports.PORT5,GearSetting.RATIO_6_1,False)
+rigttop = Motor(Ports.PORT18,GearSetting.RATIO_6_1,False)
+rigtmid = Motor(Ports.PORT4,GearSetting.RATIO_6_1,False)
 rigtbak = Motor(Ports.PORT6,GearSetting.RATIO_6_1,False)
 lefty = MotorGroup(leftbak,leftmid,lefttop) # Motors in 1 side are controlled by MotorGroups
 right = MotorGroup(rigtbak,rigtmid,rigttop)
 dtmots = MotorGroup(lefty,right)            # all drivetrain motors in a MotorGroup
 inert = Inertial(Ports.PORT11)
-intake = Motor(Ports.PORT7,GearSetting.RATIO_18_1,True)
+intake = Motor(Ports.PORT16,GearSetting.RATIO_18_1,True)
 fwing = DigitalOut(brain.three_wire_port.a)
 lbwing = DigitalOut(brain.three_wire_port.b)
 rbwing = DigitalOut(brain.three_wire_port.c)
 elevmot = Motor(Ports.PORT8,GearSetting.RATIO_18_1,False)
 ratchetLock = DigitalOut(brain.three_wire_port.d)
 autonOpt = Optical(Ports.PORT12)
-catapult = Motor(Ports.PORT9,GearSetting.RATIO_36_1,False)
+catapult = Motor(Ports.PORT14,GearSetting.RATIO_36_1,False)
 catsens = Rotation(Ports.PORT13,False)
 elevPis = DigitalOut(brain.three_wire_port.e)
 # endregion
@@ -164,10 +164,13 @@ def cata():
         toggle(cataTogg)                # waits for the toggle
         catapult.stop()                 # stops catapult
 def elevDeploy():
-    if elevPis.value():
-        elevPis.set(False)
-    else:
-        elevPis.set(True)
+    elevPis.set(True)
+    wait(100,MSEC)
+    elevPis.set(False)
+    # if elevPis.value():
+    #     elevPis.set(False)
+    # else:
+    #     elevPis.set(True)
 # endregion
 # region driver functions
 def baseCont():
