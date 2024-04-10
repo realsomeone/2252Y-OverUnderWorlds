@@ -308,14 +308,14 @@ def rtmove(time):
 def turn(theta):
     dir = theta / abs(theta)                # get direction of turn
     dtmots.set_velocity(60 * dir,PERCENT)   # set velocity to a stable vel. dir determines direction
-    amnt = degToDis(theta) * 2              # convert degrees to distance. x2 for radius
+    amnt = degToDis(theta)                  # convert degrees to distance. x2 for radius
     turn = disToMot(amnt)                   # convert distance to motor turns
     right.spin_for(REVERSE,turn,TURNS,wait=False)
     lefty.spin_for(FORWARD,turn,TURNS,wait=True) # spins motors using its encoders as reference
 def pturn(theta):
     dir = theta / abs(theta)
     dtmots.set_velocity(60,PERCENT)   # set velocity to a stable vel. dir determines direction
-    amnt = degToDis(theta)                  # convert degrees to distance
+    amnt = degToDis(theta)*2                # convert degrees to distance
     turn = disToMot(amnt)                   # convert distrance to motor turns
     if dir > 0:
         right.spin_for(FORWARD,turn,TURNS,wait=True)   # start motors
@@ -324,12 +324,12 @@ def pturn(theta):
 def rpturn(theta):
     dir = theta / abs(theta)
     dtmots.set_velocity(60,PERCENT)   # set velocity to a stable vel. dir determines direction
-    amnt = degToDis(theta)                  # convert degrees to distance
+    amnt = degToDis(theta)*2                # convert degrees to distance
     turn = disToMot(amnt)                   # convert distrance to motor turns
     if dir > 0:
-        right.spin_for(REVERSE,turn,TURNS,wait=True)   # start motors
+        right.spin_for(FORWARD,turn,TURNS,wait=True)   # start motors
     else:
-        lefty.spin_for(REVERSE,turn,TURNS,wait=True)   # start motors
+        lefty.spin_for(FORWARD,turn,TURNS,wait=True)   # start motors
 def aturn(theta=90,pivdis=float(5)):
     vel = 55
     dtmots.set_velocity(vel,PERCENT)
@@ -366,20 +366,33 @@ def auton():
     check = autonDetect()       # check which autonomous should be ran
     dtmots.set_stopping(COAST)   # set stopping to hold, should make everything more precise
     if check == "offen": # offensive side auton
-        # intake.spin_for(FORWARD,5,TURNS,wait=False)
-        move(5)
-        turn(-7)
-        intake.spin_for(FORWARD,6,TURNS,wait=False)
-        move(46)
-        move(-45.75)
-        turn(45)
-        intake.spin_for(REVERSE,2,TURNS)
-        turn(-80)
-        intake.spin_for(FORWARD,7,TURNS,wait=False)
-        move(26)
-        wait(100, MSEC)
-        move(-30)
-        rpturn(-30)
+     intake.spin_for(FORWARD,2,TURNS,wait=False)
+     move(5)
+     move(-30)
+     turn(-60)
+     lbwing.set(True)
+     move(-15)
+     lbwing.set(False)
+     wait(200,MSEC)
+     move(-3)
+     turn(-30)
+     rpturn(-50)
+     rtmove(1)
+     move(7)
+     turn(230)
+     wait(200,MSEC)
+     intake.spin_for(REVERSE,2,TURNS,wait=False)
+     move(9)
+     move(-6)
+     turn(-90)
+     rtmove(0.4)
+     move(10)
+     turn(20)
+     intake.spin_for(FORWARD,5,TURNS,wait=False)
+     move(34)
+
+     
+        
     elif check == "defen":  # defensive side auton
         lbwing.set(True)
         pass
