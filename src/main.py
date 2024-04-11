@@ -366,33 +366,35 @@ def auton():
     check = autonDetect()       # check which autonomous should be ran
     dtmots.set_stopping(COAST)   # set stopping to hold, should make everything more precise
     if check == "offen": # offensive side auton
-     intake.spin_for(FORWARD,2,TURNS,wait=False)
-     move(5)
-     move(-30)
-     turn(-60)
-     lbwing.set(True)
-     move(-15)
-     lbwing.set(False)
-     wait(200,MSEC)
-     move(-3)
-     turn(-30)
-     rpturn(-50)
-     rtmove(1)
-     move(7)
-     turn(230)
-     wait(200,MSEC)
-     intake.spin_for(REVERSE,2,TURNS,wait=False)
-     move(9)
-     move(-6)
-     turn(-90)
-     rtmove(0.4)
-     move(10)
-     turn(20)
-     intake.spin_for(FORWARD,5,TURNS,wait=False)
-     move(34)
+        intake.spin_for(FORWARD,2,TURNS,wait=False)
+        move(5)
+        move(-30)
+        turn(-60)
+        lbwing.set(True)
+        move(-15)
+        lbwing.set(False)
+        wait(200,MSEC)
+        rpturn(-45)
+        move(-6)
+        rpturn(-20)
+        move(5)
+        rtmove(0.7)
+        move(6)
+        turn(220)
+        intake.spin_for(REVERSE,2,TURNS,)
+        move(10)
+        move(-6)
+        wait(100,MSEC)
+        turn(-100)
+        rtmove(0.4)
+        move(20)
+        wait(100,MSEC)
+        turn(20)
+        intake.spin_for(FORWARD,4,TURNS,Wait=False)
 
-     
-        
+
+
+
     elif check == "defen":  # defensive side auton
         lbwing.set(True)
         pass
