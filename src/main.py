@@ -367,6 +367,7 @@ def auton():
     dtmots.set_stopping(COAST)   # set stopping to hold, should make everything more precise
     if check == "offen": # offensive side auton
         intake.spin_for(FORWARD,2,TURNS,wait=False)
+        wait(200,MSEC)
         move(5)
         move(-30)
         turn(-60)
@@ -382,21 +383,66 @@ def auton():
         move(6)
         turn(220)
         intake.spin_for(REVERSE,2,TURNS,)
-        move(10)
-        move(-6)
+        move(15)
+        move(-7)
         wait(100,MSEC)
         turn(-100)
         rtmove(0.4)
         move(20)
+        wait(400,MSEC)
+        turn(15)
+        intake.spin_for(FORWARD,4,TURNS,wait=False)
+        move(30)
         wait(100,MSEC)
-        turn(20)
-        intake.spin_for(FORWARD,4,TURNS,Wait=False)
+        move(-5)
+        turn(190)
+        intake.spin_for(REVERSE,2,TURNS,)
+        turn(-110)
+        intake.spin_for(FORWARD,4,TURNS,wait=False)
+        move(17)
+        turn(140)
+        intake.spin_for(REVERSE,2,TURNS,)
+        fwing.set(True)
+        move(32)
+        fwing.set(False)
+        rtmove(0.4)
+
 
 
 
 
     elif check == "defen":  # defensive side auton
+        intake.spin_for(FORWARD,1,TURNS,wait=False)
         lbwing.set(True)
+        move(10)
+        turn(30)
+        intake.spin_for(FORWARD,4,TURNS,wait=False)
+        move(40)
+        lbwing.set(False)
+        move(-3)
+        turn(100)
+        fwing.set(True)
+        move(23)
+        intake.spin_for(REVERSE,2,TURNS,)
+        fwing.set(False)
+        move(-10)
+        turn(250)
+        rtmove(0.5)
+        move(10)
+        turn(-80)
+        move(45)
+        turn(-140)
+        rbwing.set(True)
+        move(5)
+        turn(-60)
+        rbwing.set(False)
+        turn(40)
+        move(13)
+        turn(-30)
+        move(21)
+        intake.spin_for(REVERSE,7,TURNS,wait=False)
+
+
         pass
     else:                   # no auton; only used in emergencies
         pass
