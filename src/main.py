@@ -445,6 +445,25 @@ def auton():
 
         pass
     else:                   # no auton; only used in emergencies
+        intake.spin_for(FORWARD,1,TURNS,wait=False)
+        turn(-60)
+        move(-21)
+        turn(-90)
+        move(-4)
+        rbwing.set(True)
+        catapult.spin(FORWARD)
+        wait(1,SECONDS)
+        catapult.stop()
+        rbwing.set(False)
+        wait(100,MSEC)
+        move(-2)
+        turn(130)
+        rtmove(0.4)
+        move(5)
+        turn(-90)
+         
+       
+
         pass
 # endregion
 # region competitions functions
