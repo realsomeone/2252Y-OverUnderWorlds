@@ -384,9 +384,9 @@ def auton():
         lefty.set_velocity(float(frame[0]),PERCENT)
         right.set_velocity(float(frame[1]),PERCENT)
         intake.set_velocity(float(frame[2]),PERCENT)
-        fwing.set(frame[3])
-        lbwing.set(frame[4])
-        rbwing.set(frame[4])
+        fwing.set(not bool(frame[3]))
+        lbwing.set(not bool(frame[4]))
+        rbwing.set(not bool(frame[4]))
         wait(50)  
 # endregion
 # region competitions functions
