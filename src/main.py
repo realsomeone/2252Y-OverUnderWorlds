@@ -494,6 +494,6 @@ rbwing.set(False)
 lbwing.set(False)
 ratchetLock.set(False)
 
-catapult.set_velocity(64,PERCENT)
+catapult.set_velocity(100,PERCENT)
 intake.set_velocity(100,PERCENT)    # set motor to max vel
 elevmot.set_velocity(100,PERCENT)
