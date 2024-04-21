@@ -364,6 +364,7 @@ def raturn(theta=90,pivdis=float(5)):
     lefty.spin_for(REVERSE,turnL,TURNS,veL,PERCENT,True)
     wait(5)
 def auton():
+  
     if not brain.sdcard.is_inserted():
         brain.screen.print("el pastel mas grande del mundo")
         exit()
@@ -384,9 +385,9 @@ def auton():
         lefty.set_velocity(float(frame[0]),PERCENT)
         right.set_velocity(float(frame[1]),PERCENT)
         intake.set_velocity(float(frame[2]),PERCENT)
-        fwing.set(not bool(frame[3]))
-        lbwing.set(not bool(frame[4]))
-        rbwing.set(not bool(frame[4]))
+        fwing.set(int(float(frame[3])))
+        lbwing.set(int(float(frame[4])))
+        rbwing.set(int(float(frame[4])))
         wait(50)  
 # endregion
 # region competitions functions

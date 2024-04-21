@@ -160,6 +160,7 @@ def cataCalibration():
 def cata():
     if catapult.velocity(PERCENT) < 5:
         catapult.set_stopping(COAST)    # makes sure catapult dosent get affected by hiding
+        catapult.set_velocity(100,PERCENT)
         catapult.spin(FORWARD)          # spins catapult
         toggle(cataTogg)                # waits for the toggle
         catapult.stop()                 # stops catapult
@@ -366,13 +367,13 @@ def auton():
     check = autonDetect()       # check which autonomous should be ran
     dtmots.set_stopping(COAST)   # set stopping to hold, should make everything more precise
     if check == "offen": # offensive side auton
-        intake.spin_for(FORWARD,2,TURNS,wait=False)
-        wait(200,MSEC)
+        intake.spin_for(FORWARD,3,TURNS,wait=False)
+        wait(300,MSEC)
         move(5)
         move(-30)
-        turn(-60)
+        turn(-70)
         lbwing.set(True)
-        move(-15)
+        move(-19)
         lbwing.set(False)
         wait(200,MSEC)
         rpturn(-45)
@@ -381,9 +382,9 @@ def auton():
         move(5)
         rtmove(0.7)
         move(6)
-        turn(220)
+        turn(230)
         intake.spin_for(REVERSE,2,TURNS,)
-        move(15)
+        move(13)
         move(-7)
         wait(100,MSEC)
         turn(-100)
@@ -400,8 +401,8 @@ def auton():
         turn(-110)
         intake.spin_for(FORWARD,4,TURNS,wait=False)
         move(17)
-        turn(140)
-        intake.spin_for(REVERSE,2,TURNS,)
+        turn(150)
+        intake.spin_for(REVERSE,6,TURNS,wait=False)
         fwing.set(True)
         move(32)
         fwing.set(False)
@@ -430,7 +431,7 @@ def auton():
         rtmove(0.5)
         move(10)
         turn(-80)
-        move(45)
+        move(44)
         turn(-140)
         rbwing.set(True)
         move(5)
@@ -439,7 +440,7 @@ def auton():
         turn(40)
         move(13)
         turn(-30)
-        move(21)
+        move(22)
         intake.spin_for(REVERSE,7,TURNS,wait=False)
 
 
@@ -447,20 +448,24 @@ def auton():
     else:                   # no auton; only used in emergencies
         intake.spin_for(FORWARD,1,TURNS,wait=False)
         turn(-60)
-        move(-21)
+        move(-16)
         turn(-90)
-        move(-4)
+        move(-3)
         rbwing.set(True)
         catapult.spin(FORWARD)
-        wait(1,SECONDS)
+        intake.spin(REVERSE)
+        wait(3,SECONDS)
         catapult.stop()
+        intake.stop()
         rbwing.set(False)
         wait(100,MSEC)
-        move(-2)
-        turn(130)
+        turn(100)
         rtmove(0.4)
-        move(5)
-        turn(-90)
+
+
+
+
+
          
        
 
