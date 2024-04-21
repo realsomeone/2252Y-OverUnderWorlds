@@ -407,9 +407,8 @@ def auton():
         fwing.set(False)
         rtmove(0.4)
 
-
-
-
+        execSD('skillScore.csv') # funcion coge filename de lo que haya en SD Card.
+        # Dale rename a file generado por 'sdgen' para que este prog. pueda acceder
 
     elif check == "defen":  # defensive side auton
         intake.spin_for(FORWARD,1,TURNS,wait=False)
@@ -446,6 +445,29 @@ def auton():
         pass
     else:                   # no auton; only used in emergencies
         pass
+def execSD(filename):
+    f = brain.sdcard.loadfile(filename).decode('utf-8').split()
+    lefty.set_velocity(0,PERCENT)
+    right.set_velocity(0,PERCENT)
+    intake.set_velocity(0,PERCENT)
+    fwing.set(0)
+    lbwing.set(0)
+    rbwing.set(0)
+    right.set_stopping(HOLD)
+    lefty.set_stopping(HOLD)
+    intake.set_stopping(HOLD)
+    lefty.spin(FORWARD)
+    right.spin(FORWARD)
+    intake.spin(FORWARD)
+    for frame in f: # type: ignore
+        frame = frame.split(',')
+        lefty.set_velocity(float(frame[0]),PERCENT)
+        right.set_velocity(float(frame[1]),PERCENT)
+        intake.set_velocity(float(frame[2]),PERCENT)
+        fwing.set(int(float(frame[3])))
+        lbwing.set(int(float(frame[4])))
+        rbwing.set(int(float(frame[4])))
+        wait(50)  
 # endregion
 # region competitions functions
 driver = Event()
